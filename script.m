@@ -156,8 +156,8 @@ axes( 'visible', 'off', 'title', 'Punto 3)' );
 
 %4)
 
-function Ru = Autocorrelacion(p, u, uf)
-  N=length(u);
+function Ru = Autocorrelacion(p, uf)
+  N=length(uf);
   sumatoria = 0;
   for i = 1 : N-p
     j = uf(i,5)*uf(i+p,5);
@@ -171,24 +171,92 @@ end
 
 Ruvector = [];
 for i = 1:100
-    Ruvector(i) = Autocorrelacion(i, u, uf);
+    Ruvector(i) = Autocorrelacion(i, uf);
 end
 
 paso = 1:100;
+paso_t = paso.*(1/600);
 
 figure(4);
-subplot(2, 1, 1);
+subplot(2, 2, 1);
 hold;
 plot(paso, Ruvector);
 grid on;
 xlabel("pasos");ylabel("autocorrelacion");title("");
 
-CoefAutocorrelacion = Ruvector./var(u(:,5));
+subplot(2, 2, 2);
+hold;
+plot(paso_t, Ruvector);
+grid on;
+xlabel("tiempo [s]");ylabel("autocorrelacion");title("");
 
-subplot(2, 1, 2);
+uVar = var(u(:,5));
+CoefAutocorrelacion = Ruvector./uVar;
+
+for i = [0, 1, 5, 10, 20]
+  disp(strcat("p=", num2str(i), " -> :", num2str(Autocorrelacion(i, uf)/uVar)));
+end
+
+subplot(2, 2, 3);
 hold;
 plot(paso, CoefAutocorrelacion);
 grid on;
 xlabel("pasos");ylabel("Coeficiente de autocorrelacion");title("");
 
+subplot(2, 2, 4);
+hold;
+plot(paso_t, CoefAutocorrelacion);
+grid on;
+xlabel("tiempo [s]");ylabel("Coeficiente de autocorrelacion");title("");
+
 axes( 'visible', 'off', 'title', 'Punto 4)' );
+
+
+% 5)
+
+uLibre = 6.1;
+D = 0.11;
+St = 0.19;
+
+fd = (St * uLibre)/D;
+T = 1/fd;
+periods = 4;
+p = int64(600*T*periods);
+
+multiples_T = 4*periods*T:T:5*periods*T;
+
+N = 12;  %Tamaño de la ventana de suavizado
+window = ones(1, N) / N;
+v_to_plot = v(4*p:5*p,1);
+v_suavizado = conv(v_to_plot, window, 'valid');
+
+figure(5)
+h(1,:) = plot(t(4*p:5*p),v_to_plot);
+hold on;
+h(2,:) = plot(t(4*p+6:5*p-5),v_suavizado, "linewidth",1.5);
+xlabel("Tiempo [s]");ylabel("Velocidad [m/s]");
+title("Analisis de periodicidad de v en y00");
+hold on;
+
+ylims = ylim();
+for k = 1:length(multiples_T)
+  h(k+2,:) = plot([multiples_T(k), multiples_T(k)], ylims, 'k--'); 
+end
+
+legend([h(1,1) h(2,1)],"v", "v suavizado (N=12)")
+
+
+% 5)
+
+Re = (D * uLibre * rho) / mu;
+Ck = 0.22;
+
+Famp = 1/2 * rho * uLibre^2 * Ck * D;
+
+tiempo_fuerza = t(1:p+1);
+fuerza = Famp * sin(2*pi*fd*tiempo_fuerza);
+
+figure(6)
+plot(tiempo_fuerza,fuerza);
+xlabel("Tiempo [s]");ylabel("Fuerza [N]");
+title("Punto 6) carga sobre el cilindro para f_d");
