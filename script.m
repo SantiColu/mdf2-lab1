@@ -216,6 +216,9 @@ axes( 'visible', 'off', 'title', 'Punto 4)' );
 
 uLibre = 6.1;
 D = 0.11;
+Re = (D * uLibre * rho) / mu;
+
+
 St = 0.19;
 
 fd = (St * uLibre)/D;
@@ -246,9 +249,8 @@ end
 legend([h(1,1) h(2,1)],"v", "v suavizado (N=12)")
 
 
-% 5)
+% 6)
 
-Re = (D * uLibre * rho) / mu;
 Ck = 0.22;
 
 Famp = 1/2 * rho * uLibre^2 * Ck * D;
